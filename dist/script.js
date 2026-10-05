@@ -1,16 +1,11 @@
-const menu = document.querySelector('.menu');
-const navigation = document.querySelector('#navigation');
-menu.addEventListener('click', () => {
- const expanded = menu.getAttribute('aria-expanded') === 'true';
- menu.setAttribute('aria-expanded', String(!expanded));
- navigation.classList.toggle('open', !expanded);
- menu.textContent = expanded ? 'Menu' : 'Close';
-});
-navigation.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
- navigation.classList.remove('open'); menu.setAttribute('aria-expanded', 'false'); menu.textContent = 'Menu';
-}));
-document.addEventListener('keydown', e => {if(e.key==='Escape' && navigation.classList.contains('open')){navigation.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='Menu';menu.focus();}});
-if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
- const observer = new IntersectionObserver(entries => entries.forEach(entry => { if(entry.isIntersecting){entry.target.classList.add('reveal');observer.unobserve(entry.target);} }), {threshold:0.08});
- document.querySelectorAll('.section-heading,.about-copy,.work-card,.packages article').forEach(el=>observer.observe(el));
-}
+const menu=document.querySelector('.menu'),navigation=document.querySelector('#navigation');
+function closeMenu(){navigation.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='Menu';}
+menu.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')==='true';menu.setAttribute('aria-expanded',String(!open));navigation.classList.toggle('open',!open);menu.textContent=open?'Menu':'Close';});
+navigation.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));document.addEventListener('keydown',e=>{if(e.key==='Escape'&&navigation.classList.contains('open')){closeMenu();menu.focus();}});
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');let frame=0;
+const progress=document.querySelector('.scroll-progress');const title=document.querySelector('.hero-title');const portrait=document.querySelector('.portrait-card');
+const wordGroups=[];document.querySelectorAll('.scroll-words').forEach(el=>{const words=el.textContent.trim().split(/\s+/);el.textContent='';words.forEach((word,i)=>{const s=document.createElement('span');s.className='word';s.textContent=word;el.append(s);if(i<words.length-1)el.append(' ');});wordGroups.push({el,words:[...el.children]});});
+function renderScroll(){frame=0;const y=scrollY,range=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${range>0?y/range:0})`;wordGroups.forEach(({el,words})=>{const r=el.getBoundingClientRect();const t=Math.min(1,Math.max(0,(innerHeight*.95-r.top)/(innerHeight*.65)));words.forEach((w,i)=>w.classList.toggle('lit',reduced.matches||i/words.length<t));});if(!reduced.matches&&innerWidth>600){title.style.transform=`translateY(${Math.min(y,900)*.1}px)`;portrait.style.translate=`0 ${-Math.min(y,900)*.05}px`;}else{title.style.transform='';portrait.style.translate='';}}
+function schedule(){if(!frame)frame=requestAnimationFrame(renderScroll);}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);renderScroll();
+if(!reduced.matches&&'IntersectionObserver'in window){document.body.classList.add('motion-ready');const ob=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}}),{threshold:.08});document.querySelectorAll('.section-heading,.about-copy,.packages article').forEach(e=>{e.classList.add('reveal-target');ob.observe(e);});}
+if(matchMedia('(pointer:fine)').matches&&!reduced.matches){const halo=document.querySelector('.cursor-halo');let px=0,py=0,pending=false;addEventListener('pointermove',e=>{px=e.clientX;py=e.clientY;if(!pending){pending=true;requestAnimationFrame(()=>{halo.style.transform=`translate(${px-210}px,${py-210}px)`;halo.style.opacity='1';pending=false;});}},{passive:true});document.querySelectorAll('[data-tilt]').forEach(card=>{let cardFrame=0;card.addEventListener('pointermove',e=>{if(cardFrame||reduced.matches)return;const x=e.clientX,y=e.clientY;cardFrame=requestAnimationFrame(()=>{const r=card.getBoundingClientRect();card.style.transform=`perspective(1200px) rotateX(${-(y-r.top-r.height/2)/r.height*4}deg) rotateY(${(x-r.left-r.width/2)/r.width*4}deg)`;cardFrame=0;});});card.addEventListener('pointerleave',()=>{cancelAnimationFrame(cardFrame);cardFrame=0;card.style.transform='';});});}
