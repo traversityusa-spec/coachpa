@@ -9,3 +9,17 @@ function renderScroll(){frame=0;const y=scrollY,range=document.documentElement.s
 function schedule(){if(!frame)frame=requestAnimationFrame(renderScroll);}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);renderScroll();
 if(!reduced.matches&&'IntersectionObserver'in window){document.body.classList.add('motion-ready');const ob=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ob.unobserve(e.target);}}),{threshold:.08});document.querySelectorAll('.section-heading,.about-copy,.packages article').forEach(e=>{e.classList.add('reveal-target');ob.observe(e);});}
 if(matchMedia('(pointer:fine)').matches&&!reduced.matches){const halo=document.querySelector('.cursor-halo');let px=0,py=0,pending=false;addEventListener('pointermove',e=>{px=e.clientX;py=e.clientY;if(!pending){pending=true;requestAnimationFrame(()=>{halo.style.transform=`translate(${px-210}px,${py-210}px)`;halo.style.opacity='1';pending=false;});}},{passive:true});document.querySelectorAll('[data-tilt]').forEach(card=>{let cardFrame=0;card.addEventListener('pointermove',e=>{if(cardFrame||reduced.matches)return;const x=e.clientX,y=e.clientY;cardFrame=requestAnimationFrame(()=>{const r=card.getBoundingClientRect();card.style.transform=`perspective(1200px) rotateX(${-(y-r.top-r.height/2)/r.height*4}deg) rotateY(${(x-r.left-r.width/2)/r.width*4}deg)`;cardFrame=0;});});card.addEventListener('pointerleave',()=>{cancelAnimationFrame(cardFrame);cardFrame=0;card.style.transform='';});});}
+// Scroll-linked motion is separate from hover tilt, so both remain smooth.
+const movingMarks=[...document.querySelectorAll('.background-mark')];
+const motionCards=[...document.querySelectorAll('.work-card')];
+const motionHeadings=[...document.querySelectorAll('.section-heading')];
+const contactTitle=document.querySelector('.contact-title');
+let scrollMotionFrame=0;
+function updateScrollMotion(){scrollMotionFrame=0;const y=scrollY,vh=innerHeight;
+ movingMarks.forEach((mark,i)=>{mark.style.transform=reduced.matches?'':`translateY(${Math.sin(y/850+i)*95}px) rotate(${(i? -22:16)+y*(i?-.012:.018)}deg)`;});
+ motionCards.forEach((card,i)=>{const r=card.getBoundingClientRect();const entrance=Math.max(0,Math.min(1,(vh-r.top)/(vh*.72)));const exit=Math.max(0,Math.min(1,(-r.top+115+i*30)/vh));card.style.translate=reduced.matches?'':`0 ${(1-entrance)*80}px`;card.style.scale=reduced.matches?'':String(.94+entrance*.06-exit*.035);});
+ motionHeadings.forEach(h=>{const r=h.getBoundingClientRect();const t=Math.max(0,Math.min(1,(vh-r.top)/(vh*.6)));h.style.translate=reduced.matches?'':`${(1-t)*-45}px 0`;});
+ if(contactTitle){const r=contactTitle.getBoundingClientRect();const t=Math.max(0,Math.min(1,(vh-r.top)/(vh*.8)));contactTitle.style.translate=reduced.matches?'':`${(1-t)*-65}px 0`;}
+}
+function queueScrollMotion(){if(!scrollMotionFrame)scrollMotionFrame=requestAnimationFrame(updateScrollMotion);}
+addEventListener('scroll',queueScrollMotion,{passive:true});addEventListener('resize',queueScrollMotion);reduced.addEventListener('change',()=>{updateScrollMotion();document.querySelectorAll('.reveal-target').forEach(el=>el.classList.add('visible'));});updateScrollMotion();
