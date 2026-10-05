@@ -14,3 +14,7 @@ html{overflow-x:clip}.hero:before{right:0}.discipline{max-width:100vw}.hero-titl
 .logo-crop{background:transparent;mix-blend-mode:screen;border-radius:0}
 .logo-crop img{filter:grayscale(1) invert(1) brightness(2);mix-blend-mode:screen}
 .logo-crop{mix-blend-mode:normal}.logo-crop img{filter:url(#white-brand);mix-blend-mode:normal}
+/* Portrait-specific ambient light, kept behind the photograph and controls. */
+.portrait-card{isolation:isolate}.portrait-card:before{content:'';position:absolute;inset:-35px;z-index:-1;background:radial-gradient(ellipse at 30% 30%,#b455fc80,transparent 60%),radial-gradient(ellipse at 75% 80%,#7038d870,transparent 65%);filter:blur(28px);pointer-events:none;animation:portrait-aura 8s ease-in-out infinite alternate}.portrait-window img{filter:none;object-position:center 28%}.portrait-card:hover img{filter:none}
+@keyframes portrait-aura{from{transform:translate(-14px,8px) scale(.94);opacity:.6}to{transform:translate(18px,-14px) scale(1.13);opacity:1}}
+@media(prefers-reduced-motion:reduce){.portrait-card:before{animation:none}}
